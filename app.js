@@ -1,6 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
 
+const AppError = require('./appError');
+const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRouter');
 const userRouter = require('./routes/userRouter');
 
@@ -15,10 +17,6 @@ app.use(express.json());
 app.use(express.static(`${__dirname}/public`));
 
 //ROUTE Handers
-app.use((req, res, next) => {
-  console.log('Hello from the middleware');
-  next();
-});
 
 app.use((req, res, next) => {
   console.log(new Date().toISOString());
@@ -38,5 +36,11 @@ app.delete('/api/v1/tours/:id', deleteTour);
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+app.all('*', (req, res, next) => {
+  next(new AppError(`Cant find page ${req.originalUrl} on this server!`, 404));
+});
+
+app.use(globalErrorHandler);
 
 module.exports = app;
